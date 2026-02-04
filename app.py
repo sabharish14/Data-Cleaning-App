@@ -8,7 +8,7 @@ import os
 import re
 import requests
 
-st.set_page_config(layout="wide", page_title="Data Cleaning & Analytics App")
+st.set_page_config(layout="wide", page_title="Data Cleaning  App")
 
 def push_undo():
     # Save current state before modifying
@@ -97,7 +97,7 @@ with col2:
         redo()
         st.rerun()
 
-if st.sidebar.button("🔄 Reset / Undo cleaning"):
+if st.sidebar.button("🔄 Reset cleaning"):
     st.session_state.original_df = None
     st.session_state.working_df = None
     st.session_state.kpis = []
@@ -108,7 +108,7 @@ if st.sidebar.button("🔄 Reset / Undo cleaning"):
 # =========================
 # TITLE
 # =========================
-st.title("🧹 Data Cleaning & Analytics App")
+st.title("🧹 Data Cleaning App")
 
 st.info(
     "✔ CSV / Excel / TXT supported\n"
