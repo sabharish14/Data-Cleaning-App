@@ -175,7 +175,12 @@ if uploaded_file or gdrive_link:
 
         else:
             df = load_dataframe_from_file(uploaded_file, uploaded_file.name)
-
+        df.columns = (
+            df.columns
+              .str.strip()
+              .str.lower()
+              .str.replace(" ", "_")
+        )
         st.session_state.original_df = df.copy()
         st.session_state.working_df = df.copy()
         st.success("Dataset loaded successfully")
