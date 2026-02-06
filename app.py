@@ -67,7 +67,18 @@ POSSIBLE_KEYS = [
 # DERIVED COLUMNS
 # =========================
 DERIVED_COLUMNS = {
-    "total_amount": lambda df: df["quantity"] * df["price"]
+    "total_amount": {
+        "requires": ["quantity", "price"],
+        "formula": lambda df: df["quantity"] * df["price"]
+    },
+    "profit": {
+        "requires": ["total_sales", "cost"],
+        "formula": lambda df: df["total_sales"] - df["cost"]
+    },
+    "revenue": {
+        "requires": ["total_sales"],
+        "formula": lambda df: df["total_sales"]
+    }
 }
 
 # =========================
@@ -258,11 +269,11 @@ if st.button("🗑 Remove Duplicates Manually"):
 # =========================
 # DERIVED COLUMNS
 # =========================
-for col, func in DERIVED_COLUMNS.items():
-    try:
-        df[col] = func(df)
-    except Exception:
-        pass
+for col, meta in DERIVED_COLUMNS.items():
+    required_cols = meta["requires"]
+
+    if all(c in df.columns for c in required_cols):
+        df[col] = meta["formula"](df)
 
 # =========================
 # DATA PREVIEW
@@ -275,8 +286,6 @@ st.dataframe(df.head(10))
 # =========================
 st.subheader("📉 Missing Values (Before Cleaning)")
 missing_before = df.isnull().sum()
-for col in DERIVED_COLUMNS:
-    missing_before[col] = 0
 st.dataframe(missing_before.to_frame("Missing Count"))
 
 # =========================
@@ -332,8 +341,6 @@ st.session_state.working_df = df
 # =========================
 st.subheader("✅ Missing Values (After Cleaning)")
 missing_after = df.isnull().sum()
-for col in DERIVED_COLUMNS:
-    missing_after[col] = 0
 st.dataframe(missing_after.to_frame("Missing Count"))
 
 # =========================
