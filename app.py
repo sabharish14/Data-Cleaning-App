@@ -267,25 +267,6 @@ if st.button("🗑 Remove Duplicates Manually"):
     st.success("Manual duplicate removal completed successfully ✅")
 
 # =========================
-# DERIVED COLUMNS
-# =========================
-# 1️⃣ Remove old derived columns
-for col in DERIVED_COLUMNS.keys():
-    if col in df.columns:
-        df.drop(columns=[col], inplace=True)
-
-# 2️⃣ Recreate derived columns safely
-for col, meta in DERIVED_COLUMNS.items():
-    required_cols = meta["requires"]
-    if all(c in df.columns for c in required_cols):
-        try:
-            df[col] = meta["formula"](df)
-        except Exception:
-            pass
-
-st.session_state.working_df = df
-
-# =========================
 # DATA PREVIEW
 # =========================
 st.subheader("📄 Data Preview")
@@ -343,6 +324,25 @@ for col in df.columns:
             df[col] = df[col].fillna(df[col].mode()[0])
         elif opt == "Drop rows":
             df = df.dropna(subset=[col])
+
+st.session_state.working_df = df
+
+# =========================
+# DERIVED COLUMNS
+# =========================
+# 1️⃣ Remove old derived columns
+for col in DERIVED_COLUMNS.keys():
+    if col in df.columns:
+        df.drop(columns=[col], inplace=True)
+
+# 2️⃣ Recreate derived columns safely
+for col, meta in DERIVED_COLUMNS.items():
+    required_cols = meta["requires"]
+    if all(c in df.columns for c in required_cols):
+        try:
+            df[col] = meta["formula"](df)
+        except Exception:
+            pass
 
 st.session_state.working_df = df
 
