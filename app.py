@@ -383,26 +383,26 @@ for col in filter_cols:
         if vals:
             filtered_df = filtered_df[filtered_df[col].isin(vals)]
 # =========================
-# TEXT TRANSFORMATIONS (SIDEBAR - MANUAL APPLY)
+# TEXT TRANSFORMATIONS (SIDEBAR)
 # =========================
 st.sidebar.header("🔤 Text Transformations")
 
 df = st.session_state.working_df
 
-# Only text columns
+# get only text columns
 text_columns = df.select_dtypes(include="object").columns.tolist()
 
 if text_columns:
     transform_type = st.sidebar.selectbox(
-        "Select Transformation",
+        "Select transformation",
         ["None", "UPPERCASE", "lowercase", "Capitalize", "Concat"]
     )
 
-    # ---------- SINGLE COLUMN TRANSFORMS ----------
+    # for non-concat operations
     if transform_type in ["UPPERCASE", "lowercase", "Capitalize"]:
         text_col = st.sidebar.selectbox("Select column", text_columns)
 
-        if st.sidebar.button("✅ Apply Text Transformation"):
+        if st.sidebar.button("▶ Apply Text Change"):
             if transform_type == "UPPERCASE":
                 df[text_col] = df[text_col].astype(str).str.upper()
 
@@ -412,25 +412,34 @@ if text_columns:
             elif transform_type == "Capitalize":
                 df[text_col] = df[text_col].astype(str).str.capitalize()
 
+            # SAVE + REFRESH
             st.session_state.working_df = df
-            st.success(f"{transform_type} applied on `{text_col}`")
+            filtered_df = df.copy()
 
-    # ---------- CONCAT ----------
+            st.success(f"{transform_type} applied on '{text_col}'")
+
+    # =========================
+    # CONCAT TRANSFORMATION
+    # =========================
     elif transform_type == "Concat":
         col1 = st.sidebar.selectbox("First column", text_columns)
         col2 = st.sidebar.selectbox("Second column", text_columns)
         separator = st.sidebar.text_input("Separator", value="_")
         new_col = st.sidebar.text_input("New column name")
 
-        if st.sidebar.button("➕ Concat Columns"):
+        if st.sidebar.button("▶ Concat Columns"):
             if new_col.strip() == "":
                 st.warning("Please enter a new column name")
             else:
                 df[new_col] = (
                     df[col1].astype(str) + separator + df[col2].astype(str)
                 )
+
+                # SAVE + REFRESH
                 st.session_state.working_df = df
-                st.success(f"New column `{new_col}` created")
+                filtered_df = df.copy()
+
+                st.success(f"New column '{new_col}' created")
 
 else:
     st.sidebar.info("No text columns available")
@@ -563,7 +572,8 @@ if st.session_state.groupby_result is not None:
 # =========================
 # FINAL DATA
 # =========================
-st.subheader("✅ Cleaned & Filtered Data")
+st.subheader("🧹 Cleaned & Filtered Data")
+filtered_df = st.session_state.working_df.copy()
 st.dataframe(filtered_df)
 
 # =========================
