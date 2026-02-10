@@ -55,6 +55,8 @@ if "groupby_result" not in st.session_state:
     st.session_state.groupby_result = None
 if "run_kpi" not in st.session_state:
     st.session_state.run_kpi = False
+if "apply_text_transform" not in st.session_state:
+    st.session_state.apply_text_transform = False
 # =========================
 # POSSIBLE UNIQUE ID COLUMNS
 # =========================
@@ -381,7 +383,7 @@ for col in filter_cols:
         if vals:
             filtered_df = filtered_df[filtered_df[col].isin(vals)]
 # =========================
-# TEXT TRANSFORMATIONS (SIDEBAR)
+# TEXT TRANSFORMATIONS (SIDEBAR - MANUAL APPLY)
 # =========================
 st.sidebar.header("🔤 Text Transformations")
 
@@ -392,22 +394,21 @@ text_columns = df.select_dtypes(include="object").columns.tolist()
 
 if text_columns:
     transform_type = st.sidebar.selectbox(
-        "Select transformation",
+        "Select Transformation",
         ["None", "UPPERCASE", "lowercase", "Capitalize", "Concat"]
     )
 
-    # ---------- UPPER / LOWER / CAPITALIZE ----------
+    # ---------- SINGLE COLUMN TRANSFORMS ----------
     if transform_type in ["UPPERCASE", "lowercase", "Capitalize"]:
-        text_col = st.sidebar.selectbox(
-            "Select column",
-            text_columns
-        )
+        text_col = st.sidebar.selectbox("Select column", text_columns)
 
-        if st.sidebar.button("▶ Apply Text Change"):
+        if st.sidebar.button("✅ Apply Text Transformation"):
             if transform_type == "UPPERCASE":
                 df[text_col] = df[text_col].astype(str).str.upper()
+
             elif transform_type == "lowercase":
                 df[text_col] = df[text_col].astype(str).str.lower()
+
             elif transform_type == "Capitalize":
                 df[text_col] = df[text_col].astype(str).str.capitalize()
 
@@ -421,9 +422,9 @@ if text_columns:
         separator = st.sidebar.text_input("Separator", value="_")
         new_col = st.sidebar.text_input("New column name")
 
-        if st.sidebar.button("▶ Concat Columns"):
-            if not new_col:
-                st.warning("Enter new column name")
+        if st.sidebar.button("➕ Concat Columns"):
+            if new_col.strip() == "":
+                st.warning("Please enter a new column name")
             else:
                 df[new_col] = (
                     df[col1].astype(str) + separator + df[col2].astype(str)
