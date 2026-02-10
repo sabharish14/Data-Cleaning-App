@@ -380,7 +380,59 @@ for col in filter_cols:
         vals = st.sidebar.multiselect(col, df[col].dropna().unique())
         if vals:
             filtered_df = filtered_df[filtered_df[col].isin(vals)]
+# =========================
+# TEXT TRANSFORMATIONS (SIDEBAR)
+# =========================
+st.sidebar.header("🔤 Text Transformations")
 
+df = st.session_state.working_df
+
+# Only text columns
+text_columns = df.select_dtypes(include="object").columns.tolist()
+
+if text_columns:
+    transform_type = st.sidebar.selectbox(
+        "Select transformation",
+        ["None", "UPPERCASE", "lowercase", "Capitalize", "Concat"]
+    )
+
+    # ---------- UPPER / LOWER / CAPITALIZE ----------
+    if transform_type in ["UPPERCASE", "lowercase", "Capitalize"]:
+        text_col = st.sidebar.selectbox(
+            "Select column",
+            text_columns
+        )
+
+        if st.sidebar.button("▶ Apply Text Change"):
+            if transform_type == "UPPERCASE":
+                df[text_col] = df[text_col].astype(str).str.upper()
+            elif transform_type == "lowercase":
+                df[text_col] = df[text_col].astype(str).str.lower()
+            elif transform_type == "Capitalize":
+                df[text_col] = df[text_col].astype(str).str.capitalize()
+
+            st.session_state.working_df = df
+            st.success(f"{transform_type} applied on `{text_col}`")
+
+    # ---------- CONCAT ----------
+    elif transform_type == "Concat":
+        col1 = st.sidebar.selectbox("First column", text_columns)
+        col2 = st.sidebar.selectbox("Second column", text_columns)
+        separator = st.sidebar.text_input("Separator", value="_")
+        new_col = st.sidebar.text_input("New column name")
+
+        if st.sidebar.button("▶ Concat Columns"):
+            if not new_col:
+                st.warning("Enter new column name")
+            else:
+                df[new_col] = (
+                    df[col1].astype(str) + separator + df[col2].astype(str)
+                )
+                st.session_state.working_df = df
+                st.success(f"New column `{new_col}` created")
+
+else:
+    st.sidebar.info("No text columns available")
 # =========================
 # KPI BUILDER (FORM – FIXED)
 # =========================
