@@ -8,6 +8,28 @@ import os
 import re
 import requests
 
+# =========================
+# MISSING VALUE SUGGESTION LOGIC
+# =========================
+def suggest_missing_strategy(series):
+
+    missing_pct = series.isnull().mean()
+
+    if missing_pct == 0:
+        return "No Missing Values"
+
+    if missing_pct > 0.4:
+        return "Consider Dropping Column"
+
+    if pd.api.types.is_numeric_dtype(series):
+        if series.skew() > 1:
+            return "Fill with Median"
+        else:
+            return "Fill with Mean"
+
+    else:
+        return "Fill with Mode"
+    
 st.set_page_config(layout="wide", page_title="Data Cleaning  App")
 
 def push_undo():
@@ -285,6 +307,24 @@ st.dataframe(df.head(10))
 st.subheader("📉 Missing Values (Before Cleaning)")
 missing_before = df.isnull().sum()
 st.dataframe(missing_before.to_frame("Missing Count"))
+
+# =========================
+# MISSING VALUE SUGGESTIONS
+# =========================
+st.subheader("🤖 Missing Value Suggestions")
+
+suggestions = {
+    col: suggest_missing_strategy(df[col])
+    for col in df.columns
+}
+
+st.dataframe(
+    pd.DataFrame.from_dict(
+        suggestions,
+        orient="index",
+        columns=["Suggested Strategy"]
+    )
+)
 
 # =========================
 # FIX MISSING VALUES (UNCHANGED)
