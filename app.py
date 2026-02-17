@@ -208,7 +208,6 @@ if uploaded_file or gdrive_link:
         st.session_state.original_df = df.copy()
         st.session_state.working_df = df.copy()
         st.success("Dataset loaded successfully")
-        st.session_state.before_cleaning_snapshot = df.copy()
 
     except Exception as e:
         st.error(f"Failed to load data: {e}")
@@ -380,7 +379,6 @@ for col in df.columns:
             df = df.dropna(subset=[col])
 
 st.session_state.working_df = df
-st.session_state.after_cleaning_snapshot = df.copy()
 
 # =========================
 # DERIVED COLUMNS
@@ -617,44 +615,6 @@ if st.session_state.groupby_result is not None:
 
     # 🔒 STOP auto rerun
     st.session_state.run_groupby = False
-
-# =========================
-# DIFF VIEW (BEFORE vs AFTER)
-# =========================
-st.subheader("🔍 Diff View (Before vs After Cleaning)")
-
-before = st.session_state.get("before_cleaning_snapshot")
-after = st.session_state.get("after_cleaning_snapshot")
-
-if before is not None and after is not None:
-
-    min_len = min(len(before), len(after))
-
-    before_cmp = before.iloc[:min_len]
-    after_cmp = after.iloc[:min_len]
-
-    diff_mask = before_cmp.ne(after_cmp)
-
-    if diff_mask.any().any():
-
-        diff_df = before_cmp.copy()
-
-        for col in before_cmp.columns:
-            diff_df[col] = np.where(
-                diff_mask[col],
-                before_cmp[col].astype(str) + " → " + after_cmp[col].astype(str),
-                ""
-            )
-
-        st.dataframe(
-            diff_df.replace("", np.nan).dropna(how="all")
-        )
-
-    else:
-        st.success("No differences detected")
-
-else:
-    st.info("Diff View will appear after cleaning")
 # =========================
 # FINAL DATA
 # =========================
