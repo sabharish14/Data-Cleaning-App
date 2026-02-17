@@ -332,72 +332,53 @@ st.dataframe(
 st.subheader("🩹 Fix Missing Values")
 
 for col in df.columns:
-
     if col in DERIVED_COLUMNS:
         continue
 
     miss = df[col].isnull().sum()
-
     if miss == 0:
         continue
 
     st.markdown(f"**{col} (missing: {miss})**")
 
-    # ✅ AI Suggestion
-    suggestion = suggest_missing_strategy(df[col])
-    st.caption(f"💡 Suggestion: {suggestion}")
-
-    # ✅ Manual options (unchanged)
     if pd.api.types.is_numeric_dtype(df[col]):
         opt = st.selectbox(
             f"Fix {col}",
             ["None", "Mean", "Median", "Mode", "Forward Fill", "Backward Fill", "Drop rows"],
             key=f"fix_{col}"
         )
+
+        if opt == "Mean":
+            push_undo()
+            df[col] = df[col].fillna(df[col].mean())
+        elif opt == "Median":
+            push_undo()
+            df[col] = df[col].fillna(df[col].median())
+        elif opt == "Mode":
+            push_undo()
+            df[col] = df[col].fillna(df[col].mode()[0])
+        elif opt == "Forward Fill":
+            push_undo()
+            df[col] = df[col].fillna(method="ffill")
+        elif opt == "Backward Fill":
+            push_undo()
+            df[col] = df[col].fillna(method="bfill")
+        elif opt == "Drop rows":
+            push_undo()
+            df = df.dropna(subset=[col])
     else:
         opt = st.selectbox(
             f"Fix {col}",
-            ["None", "Mode", "Forward Fill", "Backward Fill", "Drop rows"],
+            ["None", "Mode", "Drop rows"],
             key=f"fix_{col}"
         )
 
-    # ✅ Apply manual fix
-    if opt == "Mean":
-        df[col] = df[col].fillna(df[col].mean())
-
-    elif opt == "Median":
-        df[col] = df[col].fillna(df[col].median())
-
-    elif opt == "Mode":
-        df[col] = df[col].fillna(df[col].mode()[0])
-
-    elif opt == "Forward Fill":
-        df[col] = df[col].fillna(method="ffill")
-
-    elif opt == "Backward Fill":
-        df[col] = df[col].fillna(method="bfill")
-
-    elif opt == "Drop rows":
-        df = df.dropna(subset=[col])
-
-    # ✅ Apply Suggested Fix Button
-    if st.button(f"✨ Apply Suggested Fix for {col}"):
-
-        if suggestion == "Fill with Mean":
-            df[col] = df[col].fillna(df[col].mean())
-
-        elif suggestion == "Fill with Median":
-            df[col] = df[col].fillna(df[col].median())
-
-        elif suggestion == "Fill with Mode":
+        if opt == "Mode":
             df[col] = df[col].fillna(df[col].mode()[0])
+        elif opt == "Drop rows":
+            df = df.dropna(subset=[col])
 
-        elif suggestion == "Consider Dropping Column":
-            df = df.drop(columns=[col])
-
-        st.session_state.working_df = df
-        st.success(f"Suggested fix applied to {col}")
-        st.rerun()
+st.session_state.working_df = df
 
 # =========================
 # DERIVED COLUMNS
