@@ -304,7 +304,7 @@ for col in df.columns:
     if pd.api.types.is_numeric_dtype(df[col]):
         opt = st.selectbox(
             f"Fix {col}",
-            ["None", "Mean", "Median", "Mode", "Drop rows"],
+            ["None", "Mean", "Median", "Mode", "Forward Fill", "Backward Fill", "Drop rows"],
             key=f"fix_{col}"
         )
 
@@ -317,6 +317,12 @@ for col in df.columns:
         elif opt == "Mode":
             push_undo()
             df[col] = df[col].fillna(df[col].mode()[0])
+        elif opt == "Forward Fill":
+            push_undo()
+            df[col] = df[col].fillna(method="ffill")
+        elif opt == "Backward Fill":
+            push_undo()
+            df[col] = df[col].fillna(method="bfill")
         elif opt == "Drop rows":
             push_undo()
             df = df.dropna(subset=[col])
