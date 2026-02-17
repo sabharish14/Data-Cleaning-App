@@ -380,7 +380,7 @@ for col in df.columns:
             df = df.dropna(subset=[col])
 
 st.session_state.working_df = df
-st.session_state.before_cleaning_snapshot = df.copy()
+st.session_state.after_cleaning_snapshot = df.copy()
 
 # =========================
 # DERIVED COLUMNS
